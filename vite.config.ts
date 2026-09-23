@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     server: {
+      allowedHosts: true,
       proxy: {
         '/api': {
           target: env.VITE_PAPERLESS_URL,

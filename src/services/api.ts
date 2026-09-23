@@ -30,10 +30,10 @@ async function fetchWithCache(url: string, options: RequestInit, cacheDurationMs
   return data
 }
 
-export async function fetchDocuments(query = '') {
-  let url = '/api/documents/'
+export async function fetchDocuments(query = '', page = 1) {
+  let url = `/api/documents/?page=${page}`
   if (query) {
-    url += `?query=${encodeURIComponent(query)}`
+    url += `&query=${encodeURIComponent(query)}`
   }
 
   // 15 seconds cache for documents, enough to make navigation feel instant 

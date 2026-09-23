@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -12,6 +12,10 @@ const emit = defineEmits(['close', 'upload'])
 const file = ref<File | null>(null)
 const title = ref('')
 const isUploading = ref(false)
+
+// NSP Assignment State
+const isNSP = ref(false)
+const nspYear = ref(new Date().getFullYear().toString())
 
 function handleFileChange(e: Event) {
   const target = e.target as HTMLInputElement
@@ -27,17 +31,21 @@ async function handleUpload() {
   if (!file.value) return
   isUploading.value = true
   try {
-    // If an employee is selected, we append their ecode to the title to ensure 
-    // it always shows up when we search for this employee later.
-    const finalTitle = props.employeeCode 
-      ? `[${props.employeeCode}] ${title.value}` 
-      : title.value
+    let finalTitle = title.value
+    
+    // Prefix title based on assignment
+    if (props.employeeCode) {
+      finalTitle = `[${props.employeeCode}] ${title.value}`
+    } else if (isNSP.value) {
+      finalTitle = `[NSP-${nspYear.value}] ${title.value}`
+    }
       
     emit('upload', { file: file.value, title: finalTitle })
     
     // reset
     file.value = null
     title.value = ''
+    isNSP.value = false
   } finally {
     isUploading.value = false
   }
@@ -55,10 +63,30 @@ async function handleUpload() {
       </div>
       
       <div class="p-6 space-y-5">
+        
+        <!-- Target Info -->
         <div v-if="employeeName" class="bg-primary/10 text-primary border border-primary/20 p-3 rounded-lg text-sm flex items-center gap-3">
           <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <div>
-            Uploading to folder: <span class="font-bold">{{ employeeName }}</span> ({{ employeeCode }})
+            Uploading to employee: <span class="font-bold">{{ employeeName }}</span> ({{ employeeCode }})
+          </div>
+        </div>
+        
+        <!-- NSP Toggle (Only if no employee is selected) -->
+        <div v-else class="bg-accent/50 p-4 rounded-lg border border-border space-y-3">
+          <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-foreground">
+            <input type="checkbox" v-model="isNSP" class="rounded border-border text-primary focus:ring-primary" />
+            Assign to National Service Personnel (NSP)
+          </label>
+          
+          <div v-if="isNSP" class="pl-6 animate-in slide-in-from-top-2 duration-200">
+            <label class="block text-xs font-medium text-muted-foreground mb-1.5">Select Service Year</label>
+            <select v-model="nspYear" class="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:border-primary">
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+            </select>
           </div>
         </div>
 
